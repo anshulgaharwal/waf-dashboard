@@ -6,6 +6,8 @@ import { Chart as ChartJS } from "chart.js/auto";
 export default function Home() {
   const [data, setData] = useState([]);
   const [count, setCount] = useState(0);
+  const [metrics, setMetrics] = useState({});
+  const [policy, setPolicy] = useState({});
 
   // ---------- FEEDBACK FUNCTION ----------
   const sendFeedback = (time, label) => {
@@ -26,8 +28,15 @@ export default function Home() {
         .then(result => {
           setData(result.data || []);
           setCount(result.count || 0);
-        })
-        .catch(() => console.log("API not reachable"));
+        });
+
+      fetch("http://127.0.0.1:8000/model-metrics")
+        .then(res => res.json())
+        .then(result => setMetrics(result));
+
+      fetch("http://127.0.0.1:8000/adaptive-policy")
+        .then(res => res.json())
+        .then(result => setPolicy(result));
     };
 
     fetchData();
@@ -44,6 +53,57 @@ export default function Home() {
         Total Anomalies Detected:{" "}
         <span className="text-yellow-400 font-bold">{count}</span>
       </p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+
+        <div className="bg-gray-900 p-4 rounded">
+          <h3 className="text-gray-400 text-sm">Total Anomalies</h3>
+          <p className="text-3xl font-bold">{metrics.total_anomalies || 0}</p>
+        </div>
+
+        <div className="bg-gray-900 p-4 rounded">
+          <h3 className="text-gray-400 text-sm">Feedback Received</h3>
+          <p className="text-3xl font-bold">{metrics.feedback_count || 0}</p>
+        </div>
+
+        <div className="bg-gray-900 p-4 rounded">
+          <h3 className="text-gray-400 text-sm">Model Confidence</h3>
+          <p className="text-3xl font-bold text-green-400">
+            {metrics.model_confidence || 0}%
+          </p>
+        </div>
+
+        <div className="bg-gray-900 p-4 rounded">
+          <h3 className="text-gray-400 text-sm">Last Feedback</h3>
+          <p className="text-lg">
+            {metrics.last_feedback_time || "N/A"}
+          </p>
+        </div>
+        <div className="bg-gray-900 p-4 rounded mb-6">
+          <h2 className="text-xl font-semibold mb-2">Adaptive Learning Engine</h2>
+
+          <p className="text-gray-300">
+            Status: 
+            <span className="text-yellow-400 ml-2">
+              {policy.status || "N/A"}
+            </span>
+          </p>
+
+          <p className="text-gray-300">
+            Message:
+            <span className="text-blue-400 ml-2">
+              {policy.message || "N/A"}
+            </span>
+          </p>
+
+          <p className="text-gray-300">
+            Recommended Contamination:
+            <span className="text-green-400 ml-2">
+              {policy.recommended_contamination || "0"}
+            </span>
+          </p>
+        </div>
+      </div>
+
 
       {/* ================= Charts ================= */}
       <div className="overflow-x-auto mb-6">
