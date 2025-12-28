@@ -9,16 +9,22 @@ export default function Home() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/anomalies")
-      .then(res => res.json())
-      .then(result => {
-        setData(result.data || []);
-        setCount(result.count || 0);
-      })
-      .catch(() => {
-        console.log("API not reachable");
-      });
+    const fetchData = () => {
+      fetch("http://127.0.0.1:8000/anomalies")
+        .then(res => res.json())
+        .then(result => {
+          setData(result.data || []);
+          setCount(result.count || 0);
+        })
+        .catch(() => console.log("API not reachable"));
+    };
+
+    fetchData();               // load instantly
+    const interval = setInterval(fetchData, 5000);   // refresh every 5s
+
+    return () => clearInterval(interval);
   }, []);
+
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
