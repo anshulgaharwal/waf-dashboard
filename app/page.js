@@ -8,6 +8,9 @@ export default function Home() {
   const [count, setCount] = useState(0);
   const [metrics, setMetrics] = useState({});
   const [policy, setPolicy] = useState({});
+  const [applyStatus, setApplyStatus] = useState("");
+  const [currentPolicy, setCurrentPolicy] = useState({});
+
 
   // ---------- FEEDBACK FUNCTION ----------
   const sendFeedback = (time, label) => {
@@ -37,6 +40,11 @@ export default function Home() {
       fetch("http://127.0.0.1:8000/adaptive-policy")
         .then(res => res.json())
         .then(result => setPolicy(result));
+
+      fetch("http://127.0.0.1:8000/policy_state.json")
+        .then(res => res.json())
+        .then(result => setCurrentPolicy(result))
+        .catch(() => {});
     };
 
     fetchData();
@@ -100,6 +108,28 @@ export default function Home() {
             <span className="text-green-400 ml-2">
               {policy.recommended_contamination || "0"}
             </span>
+          </p>
+          <button
+            onClick={() => {
+              fetch("http://127.0.0.1:8000/apply-policy", {
+                method: "POST"
+              })
+                .then(res => res.json())
+                .then(result => {
+                  if(result.updated){
+                    setApplyStatus("✅ Policy Applied: Model Retrained Successfully");
+                  } else {
+                    setApplyStatus("⚠️ " + result.message);
+                  }
+                })
+                .catch(() => setApplyStatus("❌ Failed to contact backend"));
+            }}
+            className="bg-purple-600 px-4 py-2 rounded mt-3"
+          >
+            APPLY AI RECOMMENDATION
+          </button>
+          <p className="mt-2 text-green-400">
+            {applyStatus}
           </p>
         </div>
       </div>
